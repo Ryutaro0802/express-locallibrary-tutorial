@@ -22,15 +22,25 @@ exports.index = (req, res) => {
         genre_count: (callback) => {
             Genre.count(callback);
         },
-    }, function (err, results) {
+
+    }, (err, results) => {
         res.render('index', { title: 'Local Library Home', error: err, data: results });
     });
 };
 
 // Display list of all books
 
-exports.book_list = (req, res) => {
-    res.send('NOT IMPLEMENTED: Book list');
+exports.book_list = (req, res, next) => {
+    
+    Book.find({}, 'title author')
+        .populate('author')
+        .exec((err, list_books) => {
+            if (err) { return next(err); }
+
+            // Successful
+
+            res.render('book_list', { title: 'Book List', book_list: list_books });
+        });
 };
 
 // Display detail page for a specific book
