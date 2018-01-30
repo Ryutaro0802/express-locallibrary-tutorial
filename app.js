@@ -14,9 +14,7 @@ const app = express();
 
 const config = require('./config/config.js');
 
-mongoose.connect(config.mongoDB, {
-	useMongoClient: true
-});
+mongoose.connect(config.mongoDB);
 
 mongoose.Promise = global.Promise;
 const db = mongoose.connection;
