@@ -69,7 +69,11 @@ exports.author_delete_get = (req, res, next) => {
 			res.redirect('/catalog/authors')
 		}
 
-		res.render('author_delete', { title: 'DeleteAuthor', author: results.author, author_books: results.author_books })
+		console.log(results)
+		// console.log(results.author)
+		// console.log(results.author_books)
+
+		res.render('author_delete', { title: 'DeleteAuthor', author: results.author, author_books: results.authors_books })
 	})
 }
 
@@ -86,9 +90,9 @@ exports.author_delete_post = (req, res, next) => {
 	}, (err, results) => {
 		if (err) { return next() }
 
-		if (results.author_books.length > 0) {
-			res.render('author_delete', { title: 'Delete Author', author: results.author, author_books: results.author_books })
-			return;
+		if (results.authors_books.length > 0) {
+			res.render('author_delete', { title: 'Delete Author', author: results.author, author_books: results.authors_books })
+			return
 		} else {
 			Author.findByIdAndRemove(req.body.authorid, function DeleteAuthor(err) {
 				if (err) { return next(err) }
