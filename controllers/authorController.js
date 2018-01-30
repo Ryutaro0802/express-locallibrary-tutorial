@@ -51,58 +51,58 @@ exports.author_create_get = (req, res) => {
 
 // Handle Author create on POST
 
-exports.author_create_post = [
-	// Validation
-
-	body('first_name')
-		.isLength({ min: 1 }).trim().withMessage('First name must be specified.')
-		.isAlphanumeric().withMessage('Frist name has non-alphanumeric characters'),
-	body('family_name')
-		.isLength({ min: 1 }).trim().withMessage('Family name must be specfied.')
-		.isAlphanumeric().withMessage('Family name has non-alphanumeric characters'),
-	body('date_of_birth', 'Invalid date of birth').optional({ checkFalsy: true }).isISO8601(),
-	body('date_of_death', 'Invalid date of death').optional({ checkFalsy: true }).isISO8601(),
-
-	// Sanitize fields.
-
-	sanitizeBody('first_name').trim().escape(),
-	sanitizeBody('family_name').trim().escape(),
-	sanitizeBody('date_of_birth').toDate(),
-	sanitizeBody('date_of_death').toDate(),
-	
-	(req, res, next) => {
-		const errors = validationResult(req);
-		if (!errors.isEmpty()) {	// エラーがあったとき
-			res.render('author_form', {title: 'Create Author', author: req.body, errors: errors.array()})
-		} else {	// エラーがなかったとき
-			const author = new Author({
-				first_name: req.body.first_name,
-				family_name: req.body.family_name,
-				date_of_birth: req.body.date_of_birth,
-				date_of_death: req.body.date_of_death
-			})
-
-			author.save((err) => {
-				if (err) { return next(err) }
-				
-				res.redirect(author.url);
-			})
-		}
-	}
-]
-
-
+exports.author_create_post = (req, res) => {
+	res.send('NOT IMPLEMENTED: Author create POST')
+}
 
 // Display Author delete form on GET
 
-exports.author_delete_get = (req, res) => {
-	res.send('NOT IMPLEMENTED: Author delete GET')
+exports.author_delete_get = (req, res, next) => {
+	async.parallel({
+		author: (callback) => {
+			Author.findById(req.params.id).exec(callback)
+		},
+		authors_books: (callback) => {
+			Book.find({ 'author': req.params.id }).exec(callback)
+		}
+	}, (err, results) => {
+		if (err) { return next(err) }
+
+		if (results.author == null) {
+			res.redirect('/catalog/authors')
+		}
+
+		console.log(results)
+		// console.log(results.author)
+		// console.log(results.author_books)
+
+		res.render('author_delete', { title: 'DeleteAuthor', author: results.author, author_books: results.authors_books })
+	})
 }
 
 // Handle Author delete on POST
 
-exports.author_delete_post = (req, res) => {
-	res.send('NOT IMPLEMENTED: Author delete POST')
+exports.author_delete_post = (req, res, next) => {
+	async.parallel({
+		author: (callback) => {
+			Author.findById(req.body.authorid).exec(callback)
+		},
+		authors_books: (callback) => {
+			Book.find({ 'author': req.body.authorid }).exec(callback)
+		}
+	}, (err, results) => {
+		if (err) { return next() }
+
+		if (results.authors_books.length > 0) {
+			res.render('author_delete', { title: 'Delete Author', author: results.author, author_books: results.authors_books })
+			return
+		} else {
+			Author.findByIdAndRemove(req.body.authorid, function DeleteAuthor(err) {
+				if (err) { return next(err) }
+				res.redirect('/catalog/authors')
+			})
+		}
+	})
 }
 
 // Display Author update form on GET
